@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:maui="clr-namespace:Microsoft.Maui.Controls.Xaml;assembly=Microsoft.Maui.Controls"
+    x:Class="EnglishCopilot.MainPage">
+
+    <Shell.TitleView>
+        <FlexLayout
+            Direction="Row"
+            JustifyContent="SpaceBetween"
+            AlignItems="Center"
+            Padding="0,0,0,0">
+
+            <Label
+                Text="English Copilot"
+                FontSize="20"
+                TextColor="White"
+                VerticalOptions="Center" />
+
+            <ImageButton
+                x:Name="IconBtn"
+                Source="settings.png"
+                HeightRequest="30"
+                WidthRequest="30"
+                VerticalOptions="Center"
+                BackgroundColor="Transparent"
+                Clicked="OnSettingsClicked" />
+        </FlexLayout>
+
+    </Shell.TitleView>
+
+    <FlexLayout
+        Direction="Column"
+        JustifyContent="SpaceBetween"
+        AlignItems="Center"
+        AlignContent="Center"
+        Padding="0,0,0,0"
+        BackgroundColor="White">
+        <Label
+            x:Name="Label1"
+            Text="Hello "
+            FontSize="20"
+            TextColor="Black"
+            HorizontalOptions="Center"
+            VerticalOptions="Center" />
+        <!--content-->
+        <FlexLayout
+            Direction="Column"
+            JustifyContent="Center"
+            AlignItems="Center"
+            AlignContent="Center"
+            Padding="0,0,0,0"
+            BackgroundColor="White">
+
+            <!--add label here-->
+            <Label
+                x:Name="Label"
+                Text="Hello "
+                FontSize="20"
+                TextColor="Black"
+                HorizontalOptions="Center"
+                VerticalOptions="Center" />
+
+        </FlexLayout>
+
+        <!--bottom action content-->
+        <FlexLayout
+            Direction="Column"
+            JustifyContent="Center"
+            AlignItems="Center"
+            AlignContent="Center"
+            Padding="0,0,0,0"
+            BackgroundColor="White">
+
+            <!--action bar :audio btn-->
+            <ImageButton
+                x:Name="AudioBtn"
+                Source="mic.png"
+                HeightRequest="30"
+                WidthRequest="30"
+                BackgroundColor="Transparent" />
+
+        </FlexLayout>
+    </FlexLayout>
+</ContentPage>

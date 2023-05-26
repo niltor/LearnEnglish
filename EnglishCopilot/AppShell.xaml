@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="EnglishCopilot.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:EnglishCopilot"
+    xmlns:page="clr-namespace:EnglishCopilot.Pages"
+    Shell.FlyoutBehavior="Disabled">
+
+    <ShellContent
+        Title="English Copilot"
+        ContentTemplate="{DataTemplate local:MainPage}"
+        Route="MainPage" />
+
+    <ShellContent
+        Title="Setting"
+        ContentTemplate="{DataTemplate page:Settings}"
+        Route="Settings" />
+
+</Shell>
