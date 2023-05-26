@@ -28,7 +28,6 @@
                 BackgroundColor="Transparent"
                 Clicked="OnSettingsClicked" />
         </FlexLayout>
-
     </Shell.TitleView>
 
     <FlexLayout
@@ -38,13 +37,7 @@
         AlignContent="Center"
         Padding="0,0,0,0"
         BackgroundColor="White">
-        <Label
-            x:Name="Label1"
-            Text="Hello "
-            FontSize="20"
-            TextColor="Black"
-            HorizontalOptions="Center"
-            VerticalOptions="Center" />
+
         <!--content-->
         <FlexLayout
             Direction="Column"
