@@ -110,8 +110,8 @@
                         Source="mic.png"
                         HeightRequest="30"
                         BackgroundColor="Transparent"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
+                        Clicked="OnRecognitionButtonClicked"
+                         />
                 </HorizontalStackLayout>
             </Grid>
 

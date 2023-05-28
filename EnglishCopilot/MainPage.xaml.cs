@@ -8,11 +8,15 @@ namespace EnglishCopilot;
 
 public partial class MainPage : ContentPage
 {
+    private readonly string AzureKey;
+    private readonly string OpenAIKey;
 
     public MainPage(ChatListVM chatListVM)
     {
         InitializeComponent();
         BindingContext = chatListVM;
+        AzureKey = Preferences.Get("AzureKey", string.Empty);
+        OpenAIKey = Preferences.Get("OpenAIKey", string.Empty);
     }
 
     private void OnSettingsClicked(object sender, EventArgs e)
@@ -25,6 +29,10 @@ public partial class MainPage : ContentPage
         await CheckAndRequestMicrophonePermission();
     }
 
+    /// <summary>
+    /// mic permission
+    /// </summary>
+    /// <returns></returns>
     private async Task<PermissionStatus> CheckAndRequestMicrophonePermission()
     {
         PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.Microphone>();
@@ -40,11 +48,21 @@ public partial class MainPage : ContentPage
         return status;
     }
 
+    /// <summary>
+    /// 开始
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private async void OnRecognitionButtonClicked(object sender, EventArgs e)
     {
+        if (string.IsNullOrWhiteSpace(AzureKey) || string.IsNullOrWhiteSpace(OpenAIKey))
+        {
+            await DisplayAlert("Error", "Please set AzureKey and OpenAiKey in Settings", "OK");
+            return;
+        }
         try
         {
-            var config = SpeechConfig.FromSubscription("YourSubscriptionKey", "YourServiceRegion");
+            var config = SpeechConfig.FromSubscription(AzureKey, "eastasia");
 
             using (var recognizer = new SpeechRecognizer(config))
             {
@@ -81,6 +99,7 @@ public partial class MainPage : ContentPage
                     UserName = "You",
                     Message = sb.ToString()
                 };
+
                 // update chatlisvm with new message
                 var chatListVM = BindingContext as ChatListVM;
                 chatListVM.ChatMessages.Add(message);
