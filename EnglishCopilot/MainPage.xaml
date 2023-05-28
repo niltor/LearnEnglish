@@ -22,12 +22,12 @@
                 TextColor="White"
                 VerticalOptions="Center" />
 
-            <ImageButton
-                x:Name="IconBtn"
-                Source="settings.png"
-                HeightRequest="30"
-                WidthRequest="30"
-                VerticalOptions="Center"
+            <Button
+                ImageSource="settings.png"
+                HeightRequest="24"
+                WidthRequest="24"
+                ContentLayout="left,6"
+                Padding="6"
                 BackgroundColor="Transparent"
                 Clicked="OnSettingsClicked" />
         </FlexLayout>
@@ -36,7 +36,7 @@
     <FlexLayout
         Direction="Column"
         JustifyContent="Start"
-        AlignItems="Center"
+        AlignItems="Start"
         AlignContent="Center"
         Padding="0,0,0,0"
         BackgroundColor="White">
@@ -87,21 +87,34 @@
 
         <!--bottom action content-->
         <AbsoluteLayout
-            HeightRequest="40"
-            BackgroundColor="Red">
+            HeightRequest="48">
+            <!--add grid layout with one row and one columns-->
+            <Grid
+                AbsoluteLayout.LayoutBounds="0,0,1,1"
+                AbsoluteLayout.LayoutFlags="All"
+                BackgroundColor="Red">
+                <Grid.RowDefinitions>
+                    <RowDefinition
+                        Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition
+                        Width="*" />
+                </Grid.ColumnDefinitions>
+                <HorizontalStackLayout
+                    Grid.Column="0"
+                    Grid.Row="0"
+                    HorizontalOptions="Center">
+                    <ImageButton
+                        x:Name="AudioBtn"
+                        Source="mic.png"
+                        HeightRequest="30"
+                        BackgroundColor="Transparent"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Grid>
 
-            <FlexLayout
-                HorizontalOptions="FillAndExpand"
-                BackgroundColor="blue">
-                <ImageButton
-                    x:Name="AudioBtn"
-                    Source="mic.png"
-                    HeightRequest="30"
-                    WidthRequest="30"
-                    
-                    HorizontalOptions="FillAndExpand"
-                    BackgroundColor="Transparent" />
-            </FlexLayout>
             <!--action bar :audio btn-->
 
         </AbsoluteLayout>
