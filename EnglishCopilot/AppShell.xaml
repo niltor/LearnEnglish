@@ -14,7 +14,7 @@
 
     <ShellContent
         Title="Setting"
-        ContentTemplate="{DataTemplate page:Settings}"
-        Route="Settings" />
+        ContentTemplate="{DataTemplate page:SettingsPage}"
+        Route="SettingsPage" />
 
 </Shell>

@@ -1,4 +1,7 @@
 ﻿using CommunityToolkit.Maui;
+
+using EnglishCopilot.Pages;
+
 using Microsoft.Extensions.Logging;
 
 namespace EnglishCopilot;
@@ -19,8 +22,12 @@ public static class MauiProgram
 
 #if DEBUG
         builder.Logging.AddDebug();
-#endif
+#endif 
 
+        builder.Services.AddSingleton<ChatListVM>();
+
+        builder.Services.AddSingleton<MainPage>();
+        builder.Services.AddSingleton<SettingsPage>();
         return builder.Build();
     }
 }

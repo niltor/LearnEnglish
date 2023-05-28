@@ -1,8 +1,8 @@
 namespace EnglishCopilot.Pages;
 
-public partial class Settings : ContentPage
+public partial class SettingsPage : ContentPage
 {
-    public Settings()
+    public SettingsPage()
     {
         InitializeComponent();
     }
