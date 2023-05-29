@@ -1,0 +1,12 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+@host = localhost
+@port = 5088
+POST http://{{host}}:{{port}}/test
+Content-Type: multipart/form-data;boundary=--boundary
+
+----boundary
+Content-Disposition: form-data; name="file"; filename="TEST.wav"
+Content-Type: audio/wav
+
+< ./TEST.wav
+----boundary--
