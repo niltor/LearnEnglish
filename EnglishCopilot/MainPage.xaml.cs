@@ -1,8 +1,4 @@
-﻿using System.Text;
-
-using EnglishCopilot.Pages;
-
-using Microsoft.CognitiveServices.Speech;
+﻿using EnglishCopilot.Pages;
 
 namespace EnglishCopilot;
 
@@ -46,70 +42,6 @@ public partial class MainPage : ContentPage
         }
         status = await Permissions.RequestAsync<Permissions.Microphone>();
         return status;
-    }
-
-    /// <summary>
-    /// 开始
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    private async void OnRecognitionButtonClicked(object sender, EventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(AzureKey) || string.IsNullOrWhiteSpace(OpenAIKey))
-        {
-            await DisplayAlert("Error", "Please set AzureKey and OpenAiKey in Settings", "OK");
-            return;
-        }
-        try
-        {
-            var config = SpeechConfig.FromSubscription(AzureKey, "eastasia");
-
-            using (var recognizer = new SpeechRecognizer(config))
-            {
-                // Note: Since RecognizeOnceAsync() returns only a single utterance, it is suitable only for single
-                // shot recognition like command or query.
-                // For long-running multi-utterance recognition, use StartContinuousRecognitionAsync() instead.
-                var result = await recognizer.RecognizeOnceAsync().ConfigureAwait(false);
-
-                // Checks result.
-                StringBuilder sb = new StringBuilder();
-                if (result.Reason == ResultReason.RecognizedSpeech)
-                {
-                    sb.AppendLine($"RECOGNIZED: Text={result.Text}");
-                }
-                else if (result.Reason == ResultReason.NoMatch)
-                {
-                    sb.AppendLine($"NOMATCH: Speech could not be recognized.");
-                }
-                else if (result.Reason == ResultReason.Canceled)
-                {
-                    var cancellation = CancellationDetails.FromResult(result);
-                    sb.AppendLine($"CANCELED: Reason={cancellation.Reason}");
-
-                    if (cancellation.Reason == CancellationReason.Error)
-                    {
-                        sb.AppendLine($"CANCELED: ErrorCode={cancellation.ErrorCode}");
-                        sb.AppendLine($"CANCELED: ErrorDetails={cancellation.ErrorDetails}");
-                        sb.AppendLine($"CANCELED: Did you update the subscription info?");
-                    }
-                }
-
-                var message = new ChatMessage
-                {
-                    UserName = "You",
-                    Message = sb.ToString()
-                };
-
-                // update chatlisvm with new message
-                var chatListVM = BindingContext as ChatListVM;
-                chatListVM.ChatMessages.Add(message);
-
-            }
-        }
-        catch (Exception ex)
-        {
-            await Console.Out.WriteLineAsync("Exception: " + ex.ToString());
-        }
     }
 
 }
