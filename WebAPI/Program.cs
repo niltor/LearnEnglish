@@ -1,4 +1,5 @@
 
+using System.Diagnostics;
 using Application.Services;
 using WebAPI;
 
@@ -15,17 +16,28 @@ var app = builder.Build();
 app.MapPost("/test", async (AIService service, IFormFile file)
     =>
 {
+    Stopwatch sw = new Stopwatch();
+    sw.Start();
     using var stream = file.OpenReadStream();
     var text = await service.SpeechToTextAsync(stream);
+    await Console.Out.WriteLineAsync($"speech:{sw.ElapsedMilliseconds} ms");
+
     if (text != null)
     {
         var result = await service.ChatResponseAsync(text);
         if (result != null)
         {
+
+            sw.Stop();
+            Console.WriteLine($"Time elapsed: {sw.ElapsedMilliseconds} ms");
             return Results.Ok(result);
+
+
         }
     }
+
     return Results.Ok();
+
 });
 
 app.Run();
