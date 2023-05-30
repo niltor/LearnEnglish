@@ -12,7 +12,7 @@ public partial class ChatListVM : ObservableObject
     const string defaultLanguage = "en-US";
 
     [ObservableProperty]
-    public ObservableCollection<ChatMessage> chatMessages;
+    public ObservableCollection<ChatMessage> chatMessages = new();
 
     [ObservableProperty]
     string? recognitionText = string.Empty;
@@ -32,7 +32,7 @@ public partial class ChatListVM : ObservableObject
         this.textToSpeech = textToSpeech;
         this.speechToText = speechToText;
 
-        var localeId = Preferences.Get("LocaleId", string.Empty);
+        var localeId = Preferences.Default.Get("LocaleId", string.Empty);
         var locales = textToSpeech.GetLocalesAsync().Result;
         if (string.IsNullOrWhiteSpace(localeId))
         {
@@ -43,8 +43,25 @@ public partial class ChatListVM : ObservableObject
             locale = locales.Where(x => x.Id == localeId).FirstOrDefault();
         }
 
-        OpenAIKey = Preferences.Get("OpenAIKey", string.Empty);
+        OpenAIKey = Preferences.Default.Get("OpenAIKey", string.Empty);
         OpenAIClient = new OpenAIClient(OpenAIKey);
+
+        InitData();
+    }
+
+
+    public void InitData()
+    {
+        ChatMessages.Add(new ChatMessage
+        {
+            UserName = "You:",
+            Message = "Hello, Just test message!"
+        });
+        ChatMessages.Add(new ChatMessage
+        {
+            UserName = "AI:",
+            Message = "AI messages  test!"
+        });
     }
 
     async Task TextToSpeech(string content, CancellationToken cancellationToken)
