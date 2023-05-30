@@ -110,13 +110,10 @@
                         Source="mic.png"
                         HeightRequest="30"
                         BackgroundColor="Transparent"
-                        Clicked="OnRecognitionButtonClicked"
+                        Command="{Binding ListenCommand}"
                          />
                 </HorizontalStackLayout>
             </Grid>
-
-            <!--action bar :audio btn-->
-
         </AbsoluteLayout>
     </FlexLayout>
 </ContentPage>

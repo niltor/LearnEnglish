@@ -4,15 +4,10 @@ namespace EnglishCopilot;
 
 public partial class MainPage : ContentPage
 {
-    private readonly string AzureKey;
-    private readonly string OpenAIKey;
-
     public MainPage(ChatListVM chatListVM)
     {
         InitializeComponent();
         BindingContext = chatListVM;
-        AzureKey = Preferences.Get("AzureKey", string.Empty);
-        OpenAIKey = Preferences.Get("OpenAIKey", string.Empty);
     }
 
     private void OnSettingsClicked(object sender, EventArgs e)

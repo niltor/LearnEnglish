@@ -71,4 +71,6 @@
 	  </MauiXaml>
 	</ItemGroup>
 
+	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionEnglishCopilotHideInfoBar="True" /></VisualStudio></ProjectExtensions>
+
 </Project>

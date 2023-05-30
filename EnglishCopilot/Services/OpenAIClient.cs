@@ -1,40 +1,27 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Application.Services;
+namespace EnglishCopilot.Services;
 /// <summary>
 /// openai 请求服务
 /// </summary>
 public class OpenAIClient
 {
-    private readonly HttpClient Client;
-    private readonly IConfiguration _configuration;
+    private readonly HttpClient Client = new HttpClient();
 
-    ILogger<OpenAIClient> _logger;
-
-    public OpenAIClient(HttpClient client, IConfiguration configuration, ILogger<OpenAIClient> logger)
+    public OpenAIClient(string key)
     {
-        _configuration = configuration;
-        _logger = logger;
-        var apiKey = _configuration.GetValue<string>("key:OpenAI");
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            _logger.LogError("openai key is null");
-        }
-        client.BaseAddress = new Uri("https://api.openai.com/");
-        client.DefaultRequestHeaders.Add("Accept", "application/json");
-        client.DefaultRequestHeaders.Add("Authorization", "Bearer " + apiKey);
-        Client = client;
-
+        Client.BaseAddress = new Uri("https://api.openai.com/");
+        Client.DefaultRequestHeaders.Add("Accept", "application/json");
+        Client.DefaultRequestHeaders.Add("Authorization", "Bearer " + key);
     }
 
     /// <summary>
     /// 对话
     /// </summary>
-    /// <param name="name"></param>
-    /// <param name="description"></param>
     /// <returns></returns>
-    public async Task<List<Choice>?> ResponseChatAsync(string content)
+    public async Task<List<Choice>> ResponseChatAsync(string content)
     {
         var requestData = new GPTRequest
         {
@@ -78,7 +65,7 @@ public class OpenAIClient
         [JsonPropertyName("model")]
         public string Model { get; set; } = "gpt-3.5-turbo";
         [JsonPropertyName("messages")]
-        public List<Message>? Messages { get; set; }
+        public List<Message> Messages { get; set; }
         [JsonPropertyName("n")]
         public int N { get; set; } = 1;
         [JsonPropertyName("max_tokens")]

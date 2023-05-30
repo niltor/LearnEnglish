@@ -3,6 +3,7 @@ using System.Globalization;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Media;
 using CommunityToolkit.Mvvm.Input;
+using EnglishCopilot.Services;
 
 namespace EnglishCopilot.ViewModels;
 
@@ -19,6 +20,8 @@ public partial class ChatListVM : ObservableObject
     readonly ITextToSpeech textToSpeech;
     readonly ISpeechToText speechToText;
     private readonly Locale locale;
+    private readonly string OpenAIKey;
+    private OpenAIClient OpenAIClient { get; init; }
 
     public ChatListVM(ITextToSpeech textToSpeech, ISpeechToText speechToText)
     {
@@ -27,6 +30,8 @@ public partial class ChatListVM : ObservableObject
 
         var locales = textToSpeech.GetLocalesAsync().Result;
         locale = locales.Where(l => l.Language == defaultLanguage).FirstOrDefault();
+        OpenAIKey = Preferences.Get("OpenAIKey", string.Empty);
+        OpenAIClient = new OpenAIClient(OpenAIKey);
     }
 
 
@@ -60,6 +65,25 @@ public partial class ChatListVM : ObservableObject
         if (recognitionResult.IsSuccessful)
         {
             RecognitionText = recognitionResult.Text;
+            var message = new ChatMessage
+            {
+                Message = recognitionResult.Text,
+                UserName = "you"
+            };
+            ChatMessages.Add(message);
+
+            var choices = await OpenAIClient.ResponseChatAsync(RecognitionText);
+            var response = choices.FirstOrDefault()?.Message.Content;
+            if (response != null)
+            {
+                await TextToSpeech(response, cancellationToken);
+                var resMessage = new ChatMessage
+                {
+                    Message = response,
+                    UserName = "Copilot"
+                };
+                ChatMessages.Add(resMessage);
+            }
         }
         else
         {
@@ -71,7 +95,6 @@ public partial class ChatListVM : ObservableObject
             RecognitionText = string.Empty;
         }
     }
-
 }
 
 
