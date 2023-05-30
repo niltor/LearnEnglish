@@ -12,7 +12,8 @@ public partial class MainPage : ContentPage
 
     private void OnSettingsClicked(object sender, EventArgs e)
     {
-        Navigation.PushAsync(new SettingsPage());
+        // navigation to settingsPage
+        Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
     private async void ContentPage_Loaded(object sender, EventArgs e)

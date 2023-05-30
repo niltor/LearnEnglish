@@ -24,6 +24,7 @@ public partial class ChatListVM : ObservableObject
     readonly ISpeechToText speechToText;
     private readonly Locale locale;
     private readonly string OpenAIKey;
+
     private OpenAIClient OpenAIClient { get; init; }
 
     public ChatListVM(ITextToSpeech textToSpeech, ISpeechToText speechToText)
@@ -31,12 +32,20 @@ public partial class ChatListVM : ObservableObject
         this.textToSpeech = textToSpeech;
         this.speechToText = speechToText;
 
+        var localeId = Preferences.Get("LocaleId", string.Empty);
         var locales = textToSpeech.GetLocalesAsync().Result;
-        locale = locales.Where(l => l.Language == defaultLanguage).FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(localeId))
+        {
+            locale = locales.OrderBy(x => x.Language).ThenBy(x => x.Name).FirstOrDefault();
+        }
+        else
+        {
+            locale = locales.Where(x => x.Id == localeId).FirstOrDefault();
+        }
+
         OpenAIKey = Preferences.Get("OpenAIKey", string.Empty);
         OpenAIClient = new OpenAIClient(OpenAIKey);
     }
-
 
     async Task TextToSpeech(string content, CancellationToken cancellationToken)
     {

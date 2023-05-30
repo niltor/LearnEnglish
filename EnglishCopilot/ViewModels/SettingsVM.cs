@@ -16,10 +16,15 @@ public partial class SettingsVM : ObservableObject
 
     public SettingsVM(ITextToSpeech textToSpeech)
     {
-        OpenAIKey = Preferences.Get("OpenAIKey", string.Empty);
-        var localeId = Preferences.Get("LocaleId", string.Empty);
-
         this.textToSpeech = textToSpeech;
+
+    }
+
+    public void InitData()
+    {
+        OpenAIKey = Preferences.Default.Get("OpenAIKey", string.Empty);
+        var localeId = Preferences.Default.Get("LocaleId", string.Empty);
+
         var locales = textToSpeech.GetLocalesAsync().Result;
         foreach (var locale in locales.OrderBy(x => x.Language).ThenBy(x => x.Name))
         {
@@ -37,10 +42,12 @@ public partial class SettingsVM : ObservableObject
     }
 
     [RelayCommand]
-    public void SaveSetting()
+    public async Task SaveSettingAsync()
     {
-        Preferences.Set("OpenAIKey", OpenAIKey);
-        Preferences.Set("LocaleId", Locale.Id);
+        Preferences.Default.Set("OpenAIKey", OpenAIKey);
+        Preferences.Default.Set("LocaleId", Locale.Id);
+
+        await Shell.Current.DisplayAlert("Alert", "保存成功", "ok");
 
     }
 }

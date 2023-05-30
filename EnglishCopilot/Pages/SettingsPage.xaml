@@ -6,7 +6,8 @@
     xmlns:vm="clr-namespace:EnglishCopilot.ViewModels"
     xmlns:cvt="clr-namespace:EnglishCopilot.Converter"
     x:DataType="vm:SettingsVM"
-    Title="Settings">
+    Title="Settings"
+    Loaded="ContentPage_Loaded">
     <ContentPage.Resources>
         <cvt:PickerLocaleDisplayConverter
             x:Key="PickerLocaleDisplayConverter" />
@@ -17,6 +18,7 @@
         Padding="8">
         <Entry
             IsPassword="true"
+            Text="{Binding OpenAIKey}"
             Placeholder="OpenAI Key" />
 
         <Picker

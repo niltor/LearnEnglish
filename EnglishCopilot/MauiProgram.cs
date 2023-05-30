@@ -23,12 +23,11 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        builder.Services.AddSingleton<ISpeechToText>(SpeechToText.Default);
-        builder.Services.AddSingleton<ITextToSpeech>(TextToSpeech.Default);
+        builder.Services.AddSingleton(SpeechToText.Default);
+        builder.Services.AddSingleton(TextToSpeech.Default);
 
-        builder.Services.AddSingleton<ChatListVM>();
-        builder.Services.AddSingleton<MainPage>();
-        builder.Services.AddSingleton<SettingsPage>();
+        builder.Services.AddTransientWithShellRoute<SettingsPage, SettingsVM>(nameof(SettingsPage));
+        builder.Services.AddTransient<MainPage, ChatListVM>();
         return builder.Build();
     }
 }
