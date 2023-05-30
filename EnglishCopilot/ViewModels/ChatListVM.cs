@@ -17,6 +17,9 @@ public partial class ChatListVM : ObservableObject
     [ObservableProperty]
     string? recognitionText = string.Empty;
 
+    [ObservableProperty]
+    public bool isListening = false;
+
     readonly ITextToSpeech textToSpeech;
     readonly ISpeechToText speechToText;
     private readonly Locale locale;
@@ -45,9 +48,27 @@ public partial class ChatListVM : ObservableObject
         }, cancellationToken);
     }
 
-    [RelayCommand(IncludeCancelCommand = true)]
-    async Task Listen(CancellationToken cancellationToken)
+    [RelayCommand]
+    public async Task Listen()
     {
+        if (!await CheckLocaleAsync()) return;
+        if (IsListening == true)
+        {
+            // cancel the speechtotextasync
+            CancellationTokenSource cts = new CancellationTokenSource(100);
+            await SpeechToTextAsync(cts.Token);
+            IsListening = false;
+
+        }
+        else
+        {
+            await SpeechToTextAsync(CancellationToken.None);
+        }
+    }
+
+    private async Task SpeechToTextAsync(CancellationToken cancellationToken)
+    {
+        IsListening = true;
         const string beginSpeakingPrompt = "Begin speaking...";
         RecognitionText = beginSpeakingPrompt;
         var recognitionResult = await speechToText.ListenAsync(
@@ -61,7 +82,6 @@ public partial class ChatListVM : ObservableObject
 
                                                 RecognitionText += partialText + " ";
                                             }), cancellationToken);
-
         if (recognitionResult.IsSuccessful)
         {
             RecognitionText = recognitionResult.Text;
@@ -84,16 +104,24 @@ public partial class ChatListVM : ObservableObject
                 };
                 ChatMessages.Add(resMessage);
             }
+            IsListening = false;
         }
         else
         {
             await Toast.Make(recognitionResult.Exception?.Message ?? "Unable to recognize speech").Show(CancellationToken.None);
-        }
 
-        if (RecognitionText is beginSpeakingPrompt)
-        {
-            RecognitionText = string.Empty;
+            IsListening = false;
         }
+    }
+
+    private async Task<bool> CheckLocaleAsync()
+    {
+        if (locale is null)
+        {
+            await Toast.Make("当前系统未安装英文语音包，请先安装").Show();
+            return false;
+        }
+        return true;
     }
 }
 

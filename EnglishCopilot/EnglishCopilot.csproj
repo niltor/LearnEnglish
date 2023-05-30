@@ -71,6 +71,10 @@
 	  </MauiXaml>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Converter\" />
+	</ItemGroup>
+
 	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionEnglishCopilotHideInfoBar="True" /></VisualStudio></ProjectExtensions>
 
 </Project>
