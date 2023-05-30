@@ -33,6 +33,12 @@
         </FlexLayout>
     </Shell.TitleView>
 
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter
+                x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
     <FlexLayout
         Direction="Column"
         JustifyContent="Start"
@@ -47,16 +53,14 @@
             FlexLayout.Grow="1"
             Padding="8"
             BackgroundColor="Transparent">
-            <ListView
+            <CollectionView
                 ItemsSource="{Binding ChatMessages}"
-                HasUnevenRows="True"
                 BackgroundColor="White"
-                SeparatorVisibility="None"
                 VerticalScrollBarVisibility="Never"
                 HorizontalScrollBarVisibility="Never"
                 SelectionMode="None">
 
-                <ListView.ItemTemplate>
+                <CollectionView.ItemTemplate>
                     <DataTemplate
                         x:DataType="vm:ChatMessage">
                         <ViewCell>
@@ -84,9 +88,8 @@
                             </HorizontalStackLayout>
                         </ViewCell>
                     </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </FlexLayout>
 
         <!--bottom action content-->
@@ -112,11 +115,18 @@
                     VerticalOptions="Center"
                     HorizontalOptions="Center">
                     <ImageButton
-                        x:Name="AudioBtn"
+                        IsVisible="{Binding IsListening,Converter={StaticResource InvertedBoolConverter}}"
                         Source="mic.png"
                         HeightRequest="30"
                         BackgroundColor="Transparent"
-                        Command="{Binding ListenCommand}" />
+                        Command="{Binding SpeechToTextCommand}" />
+
+                    <ImageButton
+                        IsVisible="{Binding IsListening}"
+                        Source="mic_off.png"
+                        HeightRequest="30"
+                        BackgroundColor="Transparent"
+                        Command="{Binding SpeechToTextCancelCommand}" />
                     <Label
                         IsVisible="{Binding IsListening}"
                         FontSize="20"

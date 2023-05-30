@@ -1,8 +1,9 @@
 ﻿using System.Collections.ObjectModel;
-using System.Globalization;
+
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Media;
 using CommunityToolkit.Mvvm.Input;
+
 using EnglishCopilot.Services;
 
 namespace EnglishCopilot.ViewModels;
@@ -46,7 +47,7 @@ public partial class ChatListVM : ObservableObject
         OpenAIKey = Preferences.Default.Get("OpenAIKey", string.Empty);
         OpenAIClient = new OpenAIClient(OpenAIKey);
 
-        InitData();
+        //InitData();
     }
 
 
@@ -74,70 +75,72 @@ public partial class ChatListVM : ObservableObject
         }, cancellationToken);
     }
 
-    [RelayCommand]
-    public async Task Listen()
-    {
-        if (!await CheckLocaleAsync()) return;
-        if (IsListening == true)
-        {
-            // cancel the speechtotextasync
-            CancellationTokenSource cts = new CancellationTokenSource(100);
-            await SpeechToTextAsync(cts.Token);
-            IsListening = false;
-
-        }
-        else
-        {
-            await SpeechToTextAsync(CancellationToken.None);
-        }
-    }
-
+    [RelayCommand(IncludeCancelCommand = true)]
     private async Task SpeechToTextAsync(CancellationToken cancellationToken)
     {
-        IsListening = true;
-        const string beginSpeakingPrompt = "Begin speaking...";
-        RecognitionText = beginSpeakingPrompt;
-        var recognitionResult = await speechToText.ListenAsync(
-                                            CultureInfo.GetCultureInfo(locale.Language ?? defaultLanguage),
-                                            new Progress<string>(partialText =>
-                                            {
-                                                if (RecognitionText is beginSpeakingPrompt)
-                                                {
-                                                    RecognitionText = string.Empty;
-                                                }
 
-                                                RecognitionText += partialText + " ";
-                                            }), cancellationToken);
-        if (recognitionResult.IsSuccessful)
+        var message = new ChatMessage
         {
-            RecognitionText = recognitionResult.Text;
-            var message = new ChatMessage
-            {
-                Message = recognitionResult.Text,
-                UserName = "you"
-            };
-            ChatMessages.Add(message);
+            Message = "test",
+            UserName = "YOU:"
+        };
+        ChatMessages.Add(message);
+        return;
 
-            var choices = await OpenAIClient.ResponseChatAsync(RecognitionText);
-            var response = choices.FirstOrDefault()?.Message.Content;
-            if (response != null)
-            {
-                await TextToSpeech(response, cancellationToken);
-                var resMessage = new ChatMessage
-                {
-                    Message = response,
-                    UserName = "Copilot"
-                };
-                ChatMessages.Add(resMessage);
-            }
-            IsListening = false;
-        }
-        else
-        {
-            await Toast.Make(recognitionResult.Exception?.Message ?? "Unable to recognize speech").Show(CancellationToken.None);
 
-            IsListening = false;
-        }
+        //if (!IsListening)
+        //{
+        //    if (!await CheckLocaleAsync()) return;
+        //    IsListening = true;
+        //}
+        //else
+        //{
+        //    IsListening = false;
+        //}
+
+        //const string beginSpeakingPrompt = "Begin speaking...";
+        //RecognitionText = beginSpeakingPrompt;
+        //var recognitionResult = await speechToText.ListenAsync(
+        //                                    CultureInfo.GetCultureInfo(locale.Language ?? defaultLanguage),
+        //                                    new Progress<string>(partialText =>
+        //                                    {
+        //                                        if (RecognitionText is beginSpeakingPrompt)
+        //                                        {
+        //                                            RecognitionText = string.Empty;
+        //                                        }
+
+        //                                        RecognitionText += partialText + " ";
+        //                                    }), cancellationToken);
+        //if (recognitionResult.IsSuccessful)
+        //{
+        //    IsListening = false;
+        //    RecognitionText = recognitionResult.Text;
+        //    var message = new ChatMessage
+        //    {
+        //        Message = recognitionResult.Text,
+        //        UserName = "YOU:"
+        //    };
+        //    ChatMessages.Add(message);
+
+        //    var choices = await OpenAIClient.ResponseChatAsync(RecognitionText);
+        //    var response = choices.FirstOrDefault()?.Message.Content;
+        //    if (response != null)
+        //    {
+        //        await TextToSpeech(response, cancellationToken);
+        //        var resMessage = new ChatMessage
+        //        {
+        //            Message = response,
+        //            UserName = "Copilot:"
+        //        };
+        //        ChatMessages.Add(resMessage);
+        //    }
+        //}
+        //else
+        //{
+        //    await Toast.Make(recognitionResult.Exception?.Message ?? "Unable to recognize speech").Show(CancellationToken.None);
+
+        //    IsListening = false;
+        //}
     }
 
     private async Task<bool> CheckLocaleAsync()
