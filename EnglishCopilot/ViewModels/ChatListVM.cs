@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Globalization;
+
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Media;
 using CommunityToolkit.Mvvm.Input;
@@ -17,7 +18,7 @@ public partial class ChatListVM : ObservableObject
     [ObservableProperty]
     public bool isListening = false;
 
-    private bool StartConvert = false;
+    private volatile bool StartConvert = false;
     private readonly ITextToSpeech textToSpeech;
     private readonly ISpeechToText speechToText;
     private readonly Locale? locale;
@@ -31,8 +32,6 @@ public partial class ChatListVM : ObservableObject
     {
         this.textToSpeech = textToSpeech;
         this.speechToText = speechToText;
-
-        InitData();
 
         var localeId = Preferences.Default.Get("LocaleId", string.Empty);
         var locales = textToSpeech.GetLocalesAsync().Result;
@@ -49,29 +48,15 @@ public partial class ChatListVM : ObservableObject
         OpenAIClient = new OpenAIClient(OpenAIKey);
     }
 
-
-    public void InitData()
-    {
-        ChatMessages.Add(new ChatMessage
-        {
-            UserName = "You:",
-            Message = "Hello, Just test message!"
-        });
-
-        ChatMessages.Add(new ChatMessage
-        {
-            UserName = "AI:",
-            Message = "AI messages  test!"
-        });
-    }
-
     [RelayCommand(IncludeCancelCommand = true)]
     private async Task SpeechToTextAsync(CancellationToken cancellationToken)
     {
+        Task task = Task.CompletedTask;
         // 开启转换监听线程
         if (!StartConvert)
         {
-            _ = Task.Run(GetResponseAsync).ConfigureAwait(false);
+
+            task = Task.Factory.StartNew(() => GetResponseAsync());
             StartConvert = true;
         }
         if (!IsListening)
@@ -85,18 +70,21 @@ public partial class ChatListVM : ObservableObject
         }
         var sentence = string.Empty;
         var sentenceSigns = new[] { '.', '?', '!' };
-        var recognitionResult = await speechToText.ListenAsync(
-                                            CultureInfo.GetCultureInfo(locale?.Language ?? defaultLanguage),
-                                            new Progress<string>(partialText =>
-                                            {
-                                                sentence += partialText;
-                                                if (sentenceSigns.Any(s =>
-                                                    partialText.Contains(s)) || sentence.Length > 20)
-                                                {
-                                                    SpeechTexts.Enqueue(sentence);
-                                                    sentence = string.Empty;
-                                                }
-                                            }), cancellationToken);
+        var recognitionResult =
+            await speechToText.ListenAsync(
+                CultureInfo.GetCultureInfo(locale?.Language ?? defaultLanguage),
+                new Progress<string>(partialText =>
+                {
+                    sentence += partialText + " ";
+                    SpeechTexts.Enqueue(sentence);
+                    sentence = string.Empty;
+                    //if (sentenceSigns.Any(s =>
+                    //    partialText.Contains(s)) || sentence.Length > 20)
+                    //{
+                    //    SpeechTexts.Enqueue(sentence);
+                    //    sentence = string.Empty;
+                    //}
+                }), cancellationToken);
         if (recognitionResult.IsSuccessful)
         {
             IsListening = false;
@@ -115,26 +103,29 @@ public partial class ChatListVM : ObservableObject
     /// <returns></returns>
     private async Task GetResponseAsync()
     {
-        while (SpeechTexts.TryDequeue(out var content))
+        while (StartConvert)
         {
-            var message = new ChatMessage
+            if (SpeechTexts.TryDequeue(out var content))
             {
-                Message = content,
-                UserName = "YOU:"
-            };
-            ChatMessages.Add(message);
-
-            var choices = await OpenAIClient.ResponseChatAsync(content);
-            var response = choices.FirstOrDefault()?.Message.Content;
-            if (response != null)
-            {
-                _ = TextToSpeech(response, CancellationToken.None);
-                var resMessage = new ChatMessage
+                var message = new ChatMessage
                 {
-                    Message = response,
-                    UserName = "Copilot:"
+                    Message = content,
+                    UserName = "YOU:"
                 };
-                ChatMessages.Add(resMessage);
+                ChatMessages.Add(message);
+
+                var choices = await OpenAIClient.ResponseChatAsync(content);
+                var response = choices.FirstOrDefault()?.Message.Content;
+                if (response != null)
+                {
+                    _ = TextToSpeech(response, CancellationToken.None);
+                    var resMessage = new ChatMessage
+                    {
+                        Message = response,
+                        UserName = "Copilot:"
+                    };
+                    ChatMessages.Add(resMessage);
+                }
             }
             Thread.Sleep(100);
         }
