@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Media;
 using CommunityToolkit.Mvvm.Input;
@@ -8,20 +10,20 @@ namespace EnglishCopilot.ViewModels;
 public partial class ChatListVM : ObservableObject
 {
     const string defaultLanguage = "en-US";
-
     [ObservableProperty]
     public ObservableCollection<ChatMessage> chatMessages = new();
-
     [ObservableProperty]
     string? recognitionText = string.Empty;
-
     [ObservableProperty]
     public bool isListening = false;
 
-    readonly ITextToSpeech textToSpeech;
-    readonly ISpeechToText speechToText;
-    private readonly Locale locale;
+    private bool StartConvert = false;
+    private readonly ITextToSpeech textToSpeech;
+    private readonly ISpeechToText speechToText;
+    private readonly Locale? locale;
     private readonly string OpenAIKey;
+
+    private ConcurrentQueue<string> SpeechTexts { get; set; } = new();
 
     private OpenAIClient OpenAIClient { get; init; }
 
@@ -63,7 +65,88 @@ public partial class ChatListVM : ObservableObject
         });
     }
 
-    async Task TextToSpeech(string content, CancellationToken cancellationToken)
+    [RelayCommand(IncludeCancelCommand = true)]
+    private async Task SpeechToTextAsync(CancellationToken cancellationToken)
+    {
+        // 开启转换监听线程
+        if (!StartConvert)
+        {
+            _ = Task.Run(GetResponseAsync).ConfigureAwait(false);
+            StartConvert = true;
+        }
+        if (!IsListening)
+        {
+            if (!await CheckLocaleAsync()) return;
+            IsListening = true;
+        }
+        else
+        {
+            IsListening = false;
+        }
+        var sentence = string.Empty;
+        var sentenceSigns = new[] { '.', '?', '!' };
+        var recognitionResult = await speechToText.ListenAsync(
+                                            CultureInfo.GetCultureInfo(locale?.Language ?? defaultLanguage),
+                                            new Progress<string>(partialText =>
+                                            {
+                                                sentence += partialText;
+                                                if (sentenceSigns.Any(s =>
+                                                    partialText.Contains(s)) || sentence.Length > 20)
+                                                {
+                                                    SpeechTexts.Enqueue(sentence);
+                                                    sentence = string.Empty;
+                                                }
+                                            }), cancellationToken);
+        if (recognitionResult.IsSuccessful)
+        {
+            IsListening = false;
+        }
+        else
+        {
+            await Toast.Make(recognitionResult.Exception?.Message ?? "Unable to recognize speech").Show(CancellationToken.None);
+
+            IsListening = false;
+        }
+    }
+
+    /// <summary>
+    /// 处理队列，并获取对话
+    /// </summary>
+    /// <returns></returns>
+    private async Task GetResponseAsync()
+    {
+        while (SpeechTexts.TryDequeue(out var content))
+        {
+            var message = new ChatMessage
+            {
+                Message = content,
+                UserName = "YOU:"
+            };
+            ChatMessages.Add(message);
+
+            var choices = await OpenAIClient.ResponseChatAsync(content);
+            var response = choices.FirstOrDefault()?.Message.Content;
+            if (response != null)
+            {
+                _ = TextToSpeech(response, CancellationToken.None);
+                var resMessage = new ChatMessage
+                {
+                    Message = response,
+                    UserName = "Copilot:"
+                };
+                ChatMessages.Add(resMessage);
+            }
+            Thread.Sleep(100);
+        }
+    }
+
+    /// <summary>
+    /// 文本转语音
+    /// </summary>
+    /// <param name="content"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private async Task TextToSpeech(string content, CancellationToken cancellationToken)
     {
         await textToSpeech.SpeakAsync(content, new()
         {
@@ -73,72 +156,6 @@ public partial class ChatListVM : ObservableObject
         }, cancellationToken);
     }
 
-    [RelayCommand(IncludeCancelCommand = true)]
-    private async Task SpeechToTextAsync(CancellationToken cancellationToken)
-    {
-        var message = new ChatMessage
-        {
-            Message = "test",
-            UserName = "YOU:"
-        };
-        ChatMessages.Add(message);
-        return;
-
-
-        //if (!IsListening)
-        //{
-        //    if (!await CheckLocaleAsync()) return;
-        //    IsListening = true;
-        //}
-        //else
-        //{
-        //    IsListening = false;
-        //}
-
-        //const string beginSpeakingPrompt = "Begin speaking...";
-        //RecognitionText = beginSpeakingPrompt;
-        //var recognitionResult = await speechToText.ListenAsync(
-        //                                    CultureInfo.GetCultureInfo(locale.Language ?? defaultLanguage),
-        //                                    new Progress<string>(partialText =>
-        //                                    {
-        //                                        if (RecognitionText is beginSpeakingPrompt)
-        //                                        {
-        //                                            RecognitionText = string.Empty;
-        //                                        }
-
-        //                                        RecognitionText += partialText + " ";
-        //                                    }), cancellationToken);
-        //if (recognitionResult.IsSuccessful)
-        //{
-        //    IsListening = false;
-        //    RecognitionText = recognitionResult.Text;
-        //    var message = new ChatMessage
-        //    {
-        //        Message = recognitionResult.Text,
-        //        UserName = "YOU:"
-        //    };
-        //    ChatMessages.Add(message);
-
-        //    var choices = await OpenAIClient.ResponseChatAsync(RecognitionText);
-        //    var response = choices.FirstOrDefault()?.Message.Content;
-        //    if (response != null)
-        //    {
-        //        await TextToSpeech(response, cancellationToken);
-        //        var resMessage = new ChatMessage
-        //        {
-        //            Message = response,
-        //            UserName = "Copilot:"
-        //        };
-        //        ChatMessages.Add(resMessage);
-        //    }
-        //}
-        //else
-        //{
-        //    await Toast.Make(recognitionResult.Exception?.Message ?? "Unable to recognize speech").Show(CancellationToken.None);
-
-        //    IsListening = false;
-        //}
-    }
     private async Task<bool> CheckLocaleAsync()
     {
         if (locale is null)
