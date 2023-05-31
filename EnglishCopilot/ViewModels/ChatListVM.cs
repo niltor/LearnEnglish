@@ -1,10 +1,7 @@
 ﻿using System.Collections.ObjectModel;
-
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Media;
 using CommunityToolkit.Mvvm.Input;
-
-using EnglishCopilot.Services;
 
 namespace EnglishCopilot.ViewModels;
 
@@ -33,21 +30,21 @@ public partial class ChatListVM : ObservableObject
         this.textToSpeech = textToSpeech;
         this.speechToText = speechToText;
 
+        InitData();
+
         var localeId = Preferences.Default.Get("LocaleId", string.Empty);
         var locales = textToSpeech.GetLocalesAsync().Result;
         if (string.IsNullOrWhiteSpace(localeId))
         {
-            locale = locales.OrderBy(x => x.Language).ThenBy(x => x.Name).FirstOrDefault();
+            locale = locales?.OrderBy(x => x.Language).ThenBy(x => x.Name).FirstOrDefault();
         }
         else
         {
-            locale = locales.Where(x => x.Id == localeId).FirstOrDefault();
+            locale = locales?.Where(x => x.Id == localeId).FirstOrDefault();
         }
 
         OpenAIKey = Preferences.Default.Get("OpenAIKey", string.Empty);
         OpenAIClient = new OpenAIClient(OpenAIKey);
-
-        //InitData();
     }
 
 
@@ -58,6 +55,7 @@ public partial class ChatListVM : ObservableObject
             UserName = "You:",
             Message = "Hello, Just test message!"
         });
+
         ChatMessages.Add(new ChatMessage
         {
             UserName = "AI:",
@@ -78,7 +76,6 @@ public partial class ChatListVM : ObservableObject
     [RelayCommand(IncludeCancelCommand = true)]
     private async Task SpeechToTextAsync(CancellationToken cancellationToken)
     {
-
         var message = new ChatMessage
         {
             Message = "test",
@@ -142,7 +139,6 @@ public partial class ChatListVM : ObservableObject
         //    IsListening = false;
         //}
     }
-
     private async Task<bool> CheckLocaleAsync()
     {
         if (locale is null)
