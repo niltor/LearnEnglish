@@ -18,7 +18,8 @@ public partial class ChatListVM : ObservableObject
     [ObservableProperty]
     public bool isListening = false;
 
-    private volatile bool StartConvert = false;
+    private bool StartConvert = true;
+
     private readonly ITextToSpeech textToSpeech;
     private readonly ISpeechToText speechToText;
     private readonly Locale? locale;
@@ -46,19 +47,13 @@ public partial class ChatListVM : ObservableObject
 
         OpenAIKey = Preferences.Default.Get("OpenAIKey", string.Empty);
         OpenAIClient = new OpenAIClient(OpenAIKey);
+        // set StartConvert to false
+
     }
 
     [RelayCommand(IncludeCancelCommand = true)]
     private async Task SpeechToTextAsync(CancellationToken cancellationToken)
     {
-        Task task = Task.CompletedTask;
-        // 开启转换监听线程
-        if (!StartConvert)
-        {
-
-            task = Task.Factory.StartNew(() => GetResponseAsync());
-            StartConvert = true;
-        }
         if (!IsListening)
         {
             if (!await CheckLocaleAsync()) return;
@@ -88,6 +83,7 @@ public partial class ChatListVM : ObservableObject
         if (recognitionResult.IsSuccessful)
         {
             IsListening = false;
+            SpeechTexts.Clear();
         }
         else
         {
@@ -101,7 +97,7 @@ public partial class ChatListVM : ObservableObject
     /// 处理队列，并获取对话
     /// </summary>
     /// <returns></returns>
-    private async Task GetResponseAsync()
+    public async Task StartTransformAsync()
     {
         while (StartConvert)
         {
@@ -127,7 +123,7 @@ public partial class ChatListVM : ObservableObject
                     ChatMessages.Add(resMessage);
                 }
             }
-            Thread.Sleep(100);
+            Thread.Sleep(800);
         }
     }
 
@@ -161,6 +157,6 @@ public partial class ChatListVM : ObservableObject
 
 public class ChatMessage
 {
-    public string UserName { get; set; }
-    public string Message { get; set; }
+    public string? UserName { get; set; }
+    public string? Message { get; set; }
 }

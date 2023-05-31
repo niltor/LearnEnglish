@@ -29,7 +29,7 @@ public class OpenAIClient
                 new Message("You are a wise and rational polymath who enjoys chatting with other people, your name is freedom, and You are simulating a real human being having a conversation!") {
                     Role = "system"
                 },
-                new Message("content"),
+                new Message(content),
             },
             N = 1,
             Max_tokens = 100,

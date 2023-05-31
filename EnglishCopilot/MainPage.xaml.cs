@@ -4,10 +4,12 @@ namespace EnglishCopilot;
 
 public partial class MainPage : ContentPage
 {
+
+    private readonly ChatListVM viewModel;
     public MainPage(ChatListVM chatListVM)
     {
         InitializeComponent();
-        BindingContext = chatListVM;
+        BindingContext = viewModel = chatListVM;
     }
 
     private void OnSettingsClicked(object sender, EventArgs e)
@@ -19,6 +21,7 @@ public partial class MainPage : ContentPage
     private async void ContentPage_Loaded(object sender, EventArgs e)
     {
         await CheckAndRequestMicrophonePermission();
+        _ = viewModel.StartTransformAsync();
     }
 
     /// <summary>
